@@ -1,6 +1,7 @@
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
-				-O3 --x-assign fast --x-initial fast --noassert
+				-O3 --x-assign fast --x-initial fast --noassert \
+				-I$(abspath ./vsrc/$(TOPNAME))
 
 BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
@@ -11,7 +12,7 @@ default: $(BIN)
 $(shell mkdir -p $(BUILD_DIR))
 
 # project source
-VSRCS = $(shell find $(abspath ./vsrc/$(TOPNAME)) -name "*.v")
+VSRCS = $(shell find $(abspath ./vsrc/$(TOPNAME)) -name "$(TOPNAME).v")
 CSRCS = $(shell find $(abspath ./csrc/$(TOPNAME)) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
 # rules for verilator

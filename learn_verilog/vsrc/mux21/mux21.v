@@ -63,18 +63,34 @@
 
 /* 行为建模方式描述2选1选择器 */
 
+// module mux21 (
+//     input a,
+//     input b,
+//     input s,
+//     output reg y // y在always块中被赋值，一定要声明为reg型的变量。
+// );
+//     always @(*) begin
+//         if (s) begin
+//             y = b;
+//         end
+//         else begin
+//             y = a;
+//         end
+//     end
+// endmodule
+
+/* 使用选择器模板实现2选1选择器 */
+
+`include "mux_key.v"
+
 module mux21 (
     input a,
     input b,
     input s,
-    output reg y // y在always块中被赋值，一定要声明为reg型的变量。
+    output y
 );
-    always @(*) begin
-        if (s) begin
-            y = b;
-        end
-        else begin
-            y = a;
-        end
-    end
+    MuxKey #(2, 1, 1) i0 (y, s, {
+        1'b0, a,
+        1'b1, b
+    });
 endmodule
