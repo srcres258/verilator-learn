@@ -1,11 +1,11 @@
 #include <verilated.h>
 #include <verilated_vcd_c.h>
-#include "Vmux21.h"
+#include "Vmux41.h"
 
 VerilatedContext *contextp = nullptr;
 VerilatedVcdC *tfp = nullptr;
 
-static Vmux21 *top = nullptr;
+static Vmux41 *top = nullptr;
 
 void stepAndDumpWave() {
     top->eval();
@@ -16,7 +16,7 @@ void stepAndDumpWave() {
 void simInit() {
     contextp = new VerilatedContext;
     tfp = new VerilatedVcdC;
-    top = new Vmux21;
+    top = new Vmux41;
     contextp->traceEverOn(true);
     top->trace(tfp, 0);
     tfp->open("dump.vcd");
@@ -35,42 +35,34 @@ int main() {
     // --- 开始仿真 ---
     simInit();
 
-    // 将s、a、b均初始化为0
-    top->s = 0;
-    top->a = 0;
-    top->b = 0;
+    top->s = 0b00;
+    top->a = 0b1110;
     stepAndDumpWave();
 
-    // 将b改为1,s、a的值不变，继续保持0
-    top->b = 1;
+    top->a = 0b0001;
     stepAndDumpWave();
 
-    // 将a、b分别改为1、0,s的值比不安
-    top->a = 1;
-    top->b = 0;
+    top->s = 0b01;
+    top->a = 0b1110;
     stepAndDumpWave();
 
-    // 将b改为1,s、a的值不变，维持10个时间单位
-    top->b = 1;
+    top->a = 0b0010;
     stepAndDumpWave();
 
-    // 将s、a、b分别变为1、0、0,维持10个时间单位
-    top->s = 1;
-    top->a = 0;
-    top->b = 0;
+    top->s = 0b10;
+    top->a = 0b1010;
     stepAndDumpWave();
 
-    top->b = 1;
+    top->a = 0b0100;
     stepAndDumpWave();
 
-    top->a = 1;
-    top->b = 0;
+    top->s = 0b11;
+    top->a = 0b0111;
     stepAndDumpWave();
 
-    top->b = 1;
+    top->a = 0b1001;
     stepAndDumpWave();
 
-    // --- 结束仿真 ---
     simExit();
 
     return 0;
