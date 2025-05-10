@@ -33,6 +33,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 gen_header:
-	$(VERILATOR) --Mdir $(OBJ_DIR) --cc $(VSRCS)
+	$(VERILATOR) --top-module $(TOPNAME) --Mdir $(OBJ_DIR) --cc $(VSRCS) \
+		-I$(abspath ./vsrc/$(TOPNAME))
 
 .PHONY: default all clean run sim gen_header

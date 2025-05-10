@@ -1,6 +1,7 @@
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
-				-O3 --x-assign fast --x-initial fast --noassert
+				-O3 --x-assign fast --x-initial fast --noassert \
+				-I$(abspath ./vsrc/$(TOPNAME))
 
 BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
@@ -17,7 +18,7 @@ $(SRC_AUTO_BIND): $(NXDC_FILES)
 auto_bind: $(SRC_AUTO_BIND)
 
 # project source
-VSRCS = $(shell find $(abspath ./vsrc/$(TOPNAME)) -name "*.v")
+VSRCS = $(shell find $(abspath ./vsrc/$(TOPNAME)) -name "$(TOPNAME).v")
 CSRCS = $(shell find $(abspath ./csrc/$(TOPNAME)) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 CSRCS += $(SRC_AUTO_BIND)
 
@@ -43,6 +44,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 gen_header:
-	$(VERILATOR) --Mdir $(OBJ_DIR) --cc $(VSRCS)
+	$(VERILATOR) --top-module $(TOPNAME) --Mdir $(OBJ_DIR) --cc $(VSRCS) \
+		-I$(abspath ./vsrc/$(TOPNAME))
 
 .PHONY: default all clean run sim auto_bind gen_header
