@@ -18,7 +18,7 @@ $(SRC_AUTO_BIND): $(NXDC_FILES)
 auto_bind: $(SRC_AUTO_BIND)
 
 # project source
-VSRCS = $(shell find $(abspath ./vsrc/$(TOPNAME)) -name "$(TOPNAME).v")
+VSRCS = $(shell find $(abspath ./vsrc/$(TOPNAME)) -name "*.v")
 CSRCS = $(shell find $(abspath ./csrc/$(TOPNAME)) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 CSRCS += $(SRC_AUTO_BIND)
 
