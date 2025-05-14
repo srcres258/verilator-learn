@@ -24,7 +24,7 @@ module ps2_keyboard (
     input ps2_data,
     output [7:0] data,
     output reg ready,
-    input nextdata_n
+    input nextdata_n,
     output reg overflow // fifo overflow
 );
     // internal signal, for test
@@ -1138,12 +1138,77 @@ module keyboard_code_to_ascii_rom (
     output reg [7:0] ascii // ASCII码
 );
     always @(keyboard_code) begin
-        //todo
+        case (keyboard_code)
+            8'h0E: ascii <= 8'h7E; // ~
+            8'h16: ascii <= 8'h31; // 1
+            8'h1E: ascii <= 8'h32; // 2
+            8'h26: ascii <= 8'h33; // 3
+            8'h25: ascii <= 8'h34; // 4
+            8'h2E: ascii <= 8'h35; // 5
+            8'h36: ascii <= 8'h36; // 6
+            8'h3D: ascii <= 8'h37; // 7
+            8'h3E: ascii <= 8'h38; // 8
+            8'h46: ascii <= 8'h39; // 9
+            8'h45: ascii <= 8'h30; // 0
+            8'h4E: ascii <= 8'h2D; // -
+            8'h55: ascii <= 8'h3D; // =
+            8'h5D: ascii <= 8'h5C; // \
+            8'h54: ascii <= 8'h5B; // [
+            8'h5B: ascii <= 8'h5D; // ]
+            8'h4C: ascii <= 8'h3B; // ;
+            8'h52: ascii <= 8'h27; // '
+            8'h41: ascii <= 8'h2C; // ,
+            8'h49: ascii <= 8'h2E; // .
+            8'h4A: ascii <= 8'h2F; // /
+
+            8'h1C: ascii <= 8'h61; // a
+            8'h32: ascii <= 8'h62; // b
+            8'h21: ascii <= 8'h63; // c
+            8'h23: ascii <= 8'h64; // d
+            8'h24: ascii <= 8'h65; // e
+            8'h2B: ascii <= 8'h66; // f
+            8'h34: ascii <= 8'h67; // g
+            8'h33: ascii <= 8'h68; // h
+            8'h43: ascii <= 8'h69; // i
+            8'h3B: ascii <= 8'h6A; // j
+            8'h42: ascii <= 8'h6B; // k
+            8'h4B: ascii <= 8'h6C; // l
+            8'h3A: ascii <= 8'h6D; // m
+            8'h31: ascii <= 8'h6E; // n
+            8'h44: ascii <= 8'h6F; // o
+            8'h4D: ascii <= 8'h70; // p
+            8'h15: ascii <= 8'h71; // q
+            8'h2D: ascii <= 8'h72; // r
+            8'h1B: ascii <= 8'h73; // s
+            8'h2C: ascii <= 8'h74; // t
+            8'h3C: ascii <= 8'h75; // u
+            8'h2A: ascii <= 8'h76; // v
+            8'h1D: ascii <= 8'h77; // w
+            8'h22: ascii <= 8'h78; // x
+            8'h35: ascii <= 8'h79; // y
+            8'h1A: ascii <= 8'h7A; // z
+
+            8'h70: ascii <= 8'h30; // 0
+            8'h69: ascii <= 8'h31; // 1
+            8'h72: ascii <= 8'h32; // 2
+            8'h7A: ascii <= 8'h33; // 3
+            8'h6B: ascii <= 8'h34; // 4
+            8'h73: ascii <= 8'h35; // 5
+            8'h74: ascii <= 8'h36; // 6
+            8'h6C: ascii <= 8'h37; // 7
+            8'h75: ascii <= 8'h38; // 8
+            8'h7D: ascii <= 8'h39; // 9
+            8'h79: ascii <= 8'h2B; // +
+            8'h7B: ascii <= 8'h2D; // -
+            8'h7C: ascii <= 8'h2A; // *
+
+            default: ascii <= 8'h00; // 缺省状态：输出0
+        endcase
     end
 endmodule
 
 // 主模块
-module ps2_keyboard (
+module ps2_keyboard_practice (
     input clk, // 时钟
     input ps2_clk, // PS/2 时钟
     input ps2_data, // PS/2 数据
@@ -1152,7 +1217,25 @@ module ps2_keyboard (
     output [6:0] seg1, // 低1位数码管（显示键码）
     output [6:0] seg0 // 低0位数码管（显示键码）
 );
-    wire [7:0] keyboard_code, ascii;
+    reg nextdata_n;
+    wire ready, overflow, display;
+    wire [7:0] keyboard_code_tmp, ascii;
+    reg [7:0] keyboard_code;
+    wire [6:0] seg3_output, seg2_output, seg1_output, seg0_output;
+    wire [6:0] seg3_tmp, seg2_tmp, seg1_tmp, seg0_tmp;
+
+    assign display = keyboard_code != 8'hF0 && keyboard_code != 8'h00;
+
+    assign seg3_output = display ? seg3_tmp : 7'b1000000; // 不输出时显示横杠 "-"
+    assign seg2_output = display ? seg2_tmp : 7'b1000000;
+    assign seg1_output = display ? seg1_tmp : 7'b1000000;
+    assign seg0_output = display ? seg0_tmp : 7'b1000000;
+    
+    // 由于NVBoard上的数码管信号是反向显示的，所以这里取反输出以便更直观地观察。
+    assign seg3 = ~seg3_output;
+    assign seg2 = ~seg2_output;
+    assign seg1 = ~seg1_output;
+    assign seg0 = ~seg0_output;
 
     keyboard_code_to_ascii_rom rom(
         .keyboard_code(keyboard_code),
@@ -1164,18 +1247,36 @@ module ps2_keyboard (
         .clrn(1),
         .ps2_clk(ps2_clk),
         .ps2_data(ps2_data),
-        .data(keyboard_code)
+        .data(keyboard_code),
+        .nextdata_n(nextdata_n),
+        .ready(ready),
+        .overflow(overflow)
     );
 
-    seg16_8 seg0( // 显示键码
+    seg16_8 seg16_0( // 显示键码
         .in(keyboard_code),
-        .seg1(seg1),
-        .seg0(seg0)
+        .seg1(seg1_tmp),
+        .seg0(seg0_tmp)
     );
 
-    seg16_8 seg1( // 显示ASCII码
+    seg16_8 seg16_1( // 显示ASCII码
         .in(ascii),
-        .seg1(seg3),
-        .seg0(seg2)
+        .seg1(seg3_tmp),
+        .seg0(seg2_tmp)
     );
+
+    initial begin
+        keyboard_code = 0;
+    end
+
+    always @(clk) begin
+        nextdata_n = 1;
+        if (ready) begin
+            keyboard_code = keyboard_code_tmp;
+        end
+        else begin
+            keyboard_code = 0;
+        end
+        nextdata_n = 0;
+    end
 endmodule
